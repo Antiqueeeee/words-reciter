@@ -1,0 +1,64 @@
+from dataclasses import dataclass
+from typing import List
+
+
+@dataclass
+class Wordaffix:
+    affix : str # 词缀
+    affixMeaning : str # 词缀含义
+
+@dataclass
+class WordItem:
+    word : str # 单词
+    pronunciationFilePath : str # 发音文件路径
+    exampleSentences : List[str] # 例句
+    meaning : List[str] # 单词含义, 用WordMeaning主要限制存储的内容，本质上就是str
+    history : str # 发展历史和文化背景
+    reciteTrick : str # 背诵技巧
+    collocations : str # 搭配用法
+    pronunciation : List[str] # 发音
+
+@dataclass
+class WordSource:# 将出版社、年级、年份、考试类型等都合并到Source当中 
+    # 那也应该有一个存储的规范，如果是教材上的单词，要有出版社、版本号、年份、年级、上下册等
+    # 如果是考试，那就有考试类型就行
+    publisher : str # 出版社
+    grade : str # 年级
+    examType : str # 考试类型
+    edition : str # 版次
+    volume : str # 上下册
+    name : str # 节点名称
+
+@dataclass
+class WordPartOfSpeech: # 只有固定的几个，V、ADV、ADJ等等
+    partOfSpeech : str # 词性
+    
+@dataclass
+class WordHasRelationship:
+    affix : List[Wordaffix] # 词缀 Contains-Affix
+    partOfSpeech : List[WordPartOfSpeech]  # 单词具备的词性，可以通过单词含义得到 Contains-PartOfSpeech
+    synonyms : List[WordItem] # 同义词 Contains-Synonyms
+    lookAlikeWords : List[WordItem] # 形近词 Contains-LookAlikeWords
+    Inflections : List[WordItem] # 变形 Contains-Inflections
+    rootWord : List[WordItem] # 根单词,词根 Contains-Root
+    source : List[WordSource] # 来源 ComesFrom
+
+
+
+# 单词表
+# https://www.sohu.com/a/485193126_121124286
+
+# class WordSentence:
+#     sentence : str # 原句子
+#     translation_chinese : str # 中文翻译
+
+# class WordInflections:
+#     word : str # 变形单词
+#     meaning : str # 变形含义
+#     part_of_speech : str # 变形词性
+
+
+# class WordMeaning: 
+#     # 不同词性可能对应不同含义
+#     meaning : str # 意思
+#     current_part_of_speech : str # 当前词性
