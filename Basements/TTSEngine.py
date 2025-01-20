@@ -200,7 +200,7 @@ def test():
     VOICE = "zh-CN-YunxiNeural"
     VOICE = "en-US-SteffanNeural"
     OUTPUT_FILE, OUTPUT_SUBS = r"C:\FeynmindPython\words-reciter\Examples\tts.wav", r"C:\FeynmindPython\words-reciter\Examples\tts.vtt"
-    audio_file, sub_file = tts.predict(TEXT, VOICE, 0, 50, 0, OUTPUT_FILE, OUTPUT_SUBS)
+    audio_file, sub_file = tts.predict(TEXT, VOICE, -30, 50, 0, OUTPUT_FILE, OUTPUT_SUBS)
     print("Audio file written to", audio_file, "and subtitle file written to", sub_file)
 
 if __name__ == "__main__":
