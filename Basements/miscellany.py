@@ -16,7 +16,14 @@ class Miscellany:
         if len (filename) == 4:
             publisher, edition, grade, volume = filename
             name = publisher + "-" + edition + "-" + grade + "-" + volume
-        return WordSource(publisher, grade, examType, edition, volume, name)
+        return WordSource(
+            publisher = publisher,
+            grade = grade,
+            examType = examType,
+            edition = edition,
+            volume = volume,
+            name = name
+        )
 
 
 
