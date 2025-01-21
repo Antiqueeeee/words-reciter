@@ -4,6 +4,7 @@ current_path = os.path.abspath(os.path.join(__file__, os.pardir))
 project_path = os.path.abspath(os.path.join(current_path, os.pardir))
 sys.path.append(project_path)
 
+import json
 from config import *
 from Basements.ItemWord import *
 
@@ -33,6 +34,33 @@ class Neo4jHandler:
                 i["n"]["节点类型"] = Label
         return res
 
+    def findRelatedNode(self, node_name, node_label, rel_type, node_attributes = dict(), rel_attributes=dict()) :
+        node_attributes["name"] = node_name
+        driver = self.neo4j_connect()
+        # 准备关系属性
+        rel_attributes_prefixed = {f"rel_{k}": v for k, v in rel_attributes.items()}
+        all_params = {**node_attributes, **rel_attributes_prefixed}
+        result = list()
+        with driver.session() as session:
+            # 构建查询
+            query = f"MATCH (basic:{node_label})-[r:{rel_type}]->(n) WHERE "
+            query += " AND ".join([f"basic.{key} = ${key}" for key in node_attributes.keys()])
+            if rel_attributes:
+                query += " AND " + " AND ".join([f"r.{k} = $rel_{k}" for k in rel_attributes.keys()])
+            query += " RETURN n"
+
+            # 打印填入真实值的Cypher查询
+            formatted_query = query
+            for key, value in all_params.items():
+                formatted_query = formatted_query.replace(f"${key}", repr(value))
+            print("Formatted Cypher query:")
+            print(formatted_query)
+
+            # 执行查询
+            res = session.run(query, **all_params)
+            result = res.data()
+        self.close(driver)
+        return result
 
     def createNode(self, name, Label, attributes=dict()):
         driver = self.neo4j_connect()
@@ -110,6 +138,7 @@ class Neo4jHandler:
 
     
 if __name__ == '__main__':
+    # # 测试创建节点
     # neo4j_handler = Neo4jHandler()
     # # res = neo4j_handler.findNodeByName("apple", "Word")
     # name = "hello world"
@@ -120,6 +149,8 @@ if __name__ == '__main__':
     # label = "word"
     # res = neo4j_handler.createNode(name, label)
 
+    # # 测试关系建立
+    # neo4j_handler = Neo4jHandler()
     # head_name = "hello feynmind"
     # head_label = "word"
     # head_attributes = dict()
@@ -130,14 +161,34 @@ if __name__ == '__main__':
     # rel_attributes = dict()
     # neo4j_handler.createRelationship(head_label, head_name, head_attributes, tail_label, tail_name, tail_attributes, rel_type, rel_attributes)
 
+    # # 测试单词上传
+    # neo4j_handler = Neo4jHandler()
+    # word = "Thrust"
+    # source_attribute = {
+    #     "publisher" : "人民教育出版社",
+    #     "grade" : "九年级",
+    #     "edition" : "2013年",
+    #     "volume" : "全一册",
+    #     "name" : "人民教育出版社-2013年-九年级-全一册"
+    # }
+    # relation_attributes = {"Unit" : "Unit 1"}
+    # neo4j_handler.create_word(word, source_name=source_attribute["name"], source_attributes=source_attribute, relation_attributes=relation_attributes)
+
+    #  测试查询相关节点功能， 根据出版社查询单词
     neo4j_handler = Neo4jHandler()
     word = "Thrust"
     source_attribute = {
         "publisher" : "人民教育出版社",
         "grade" : "九年级",
-        "edition" : "2013年",
+        "edition" : "2014年3月第一版",
         "volume" : "全一册",
-        "name" : "人民教育出版社-2013年-九年级-全一册"
+        "name" : "人民教育出版社-2014年3月第一版-九年级-全一册"
     }
     relation_attributes = {"Unit" : "Unit 1"}
-    neo4j_handler.create_word(word, source_name=source_attribute["name"], source_attributes=source_attribute, relation_attributes=relation_attributes)
+    relation_type = "HAS_WORD"
+    res = neo4j_handler.findRelatedNode(
+        node_name = source_attribute["name"], node_label = "WordSource", rel_type = relation_type,
+        node_attributes = source_attribute, rel_attributes = relation_attributes
+    )
+    print(len(res))
+
