@@ -7,3 +7,21 @@ class params_publisher_select_word(BaseModel):
     edition: str  # 版次
     volume: str  # 上下册
     unit : Optional[str] = None
+
+class params_get_grades(BaseModel):
+    publisher: str
+
+class params_get_volumes(BaseModel):
+    publisher: str
+    grade: str
+
+class params_get_editions(BaseModel):
+    publisher: str
+    grade: str
+    volume: str
+
+class params_get_units(BaseModel):
+    publisher: str
+    grade: str
+    volume: str
+    edition: str

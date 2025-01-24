@@ -24,29 +24,10 @@ class DataManager:
             wordItem = WordItem(name=word, pronunciation = pronunce, meaning = meaning)
             self.neo4j_handler.create_word(wordItem = wordItem, wordSource = wordSource , relation_attributes = {"Unit" : unit})
 
-    def publisher_select_word(self,publisher, grade, edition, volume, unit):
-        results = self.neo4j_handler.findRelatedNode(
-            node_name = publisher + "-" + edition + "-" + grade + "-" + volume
-            , node_label = "WordSource"
-            , rel_type = "HAS_WORD"
-            , rel_attributes = {"Unit" : unit}
-        )
-        results = [WordItem(**node["n"]).__dict__ for node in results]
-        return results
+
 
 if __name__ == "__main__":
-    # # 测试上传单词功能
-    # manager = DataManager()
-    # xlsx_path = r'C:\FeynmindPython\words-reciter\Examples\人民教育出版社-2014年3月第一版-九年级-全一册.xlsx'
-    # manager.upload_words_from_xlsx(xlsx_path)
-
-    # 测试根据出版信息找单词
+    # 测试上传单词功能
     manager = DataManager()
-    results = manager.publisher_select_word(
-        publisher = "人民教育出版社"
-        , grade = "九年级"
-        , edition = "2014年3月第一版"
-        , volume = "全一册"
-        , unit = "Unit 1"
-    )
-    print(len(results))
+    xlsx_path = r'C:\FeynmindPython\words-reciter\Examples\人民教育出版社-2014年3月第一版-九年级-全一册.xlsx'
+    manager.upload_words_from_xlsx(xlsx_path)
