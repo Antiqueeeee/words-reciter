@@ -3,6 +3,7 @@ current_path = os.path.abspath(os.path.join(__file__, os.pardir))
 project_path = os.path.abspath(os.path.join(current_path, os.pardir))
 sys.path.append(project_path)
 
+from datetime import datetime
 from Basements.ItemWord import WordSource
 class Miscellany:
     
@@ -25,6 +26,8 @@ class Miscellany:
             name = name
         )
 
+    def time_now(self, format = "%Y-%m-%d %H:%M:%S"):
+        return datetime.now().strftime(format)
 
 
 if __name__ == '__main__':
