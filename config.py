@@ -37,13 +37,13 @@ WORD_COMPLETION_TEMPLATE = '''
 
 我会告诉你现在需要你帮我讲解的单词是什么，然后需要你将讲解的结果以JSON形式返回给我，讲解从6个方面进行，具体要求如下：
 
-1. 发音方式（pronunciation）：会读是记忆单词的第一步，学生可以通过读音规则来快速记住单词的拼写。我需要你根据单词进行音节划分，将单词进行分割，每个音节之间用中横线"-"连接，最终结果以List[str]的形式储存。单词可能会有多种发音方式，例如：
+1. 发音方式（pronunciationRules）：会读是记忆单词的第一步，学生可以通过读音规则来快速记住单词的拼写。我需要你根据单词进行音节划分，将单词进行分割，每个音节之间用中横线"-"连接，最终结果以List[str]的形式储存。单词可能会有多种发音方式，例如：
    - computer可以被划分为com-pu-ter，则应返回['com-pu-ter']
    - Butterfly可以被划分为But-ter-fly，则应返回['But-ter-fly']
    - 像resume、record这种同形异义词，不同词性有不同发音，那返回的列表中就应该包含多个元素，比如讲解resume的发音方式时应该返回['re-sume','re-su-me']
    - 如果需要讲解的是一个词组，则直接返回空列表[]
 
-2. 例句（examples）：根据当前需要讲解的单词，举3个生活中常用的例子，比如逛街购物时、旅游时等类似生活中常见的场景中会使用到的句子。结果以List[dict]的形式返回，dict中包含example和translate两个字段。例如讲解project的例句时，返回的形式应类似于：
+2. 例句（exampleSentences）：根据当前需要讲解的单词，举3个生活中常用的例子，比如逛街购物时、旅游时等类似生活中常见的场景中会使用到的句子。结果以List[dict]的形式返回，dict中包含example和translate两个字段。例如讲解project的例句时，返回的形式应类似于：
    [
      {{"example":"She is working on a science project for her class that is due next week.","translate":"她正在为班级做一个科学项目，下周截止。"}},
      {{"example":"They plan to project the final presentation onto a large screen for everyone in the auditorium.","translate":"他们计划将最终的演示投影到一个大屏幕上，供礼堂里的所有人观看。"}},
@@ -79,8 +79,8 @@ WORD_COMPLETION_TEMPLATE = '''
 现在需要你进行讲解的单词为：{word}
 请将分析结果以以下JSON格式返回：
 {{
-    "pronunciation": [...],
-    "examples": [...],
+    "pronunciationRules": [...],
+    "exampleSentences": [...],
     "affix": [...],
     "synonyms": [...],
     "lookAlikeWords": [...],
