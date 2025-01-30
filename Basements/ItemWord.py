@@ -41,13 +41,17 @@ class WordPartOfSpeech: # 只有固定的几个，V、ADV、ADJ等等
 # 图谱中与Word类有关联的节点类型
 @dataclass
 class WordHasRelationship:
-    affix : List[Wordaffix] # 词缀 Contains-Affix
+    HAS_AFFIX : List[Wordaffix] # 词缀 Contains-Affix
     partOfSpeech : List[WordPartOfSpeech]  # 单词具备的词性，可以通过单词含义得到 Contains-PartOfSpeech
-    synonyms : List[WordItem] # 同义词 Contains-Synonyms
-    lookAlikeWords : List[WordItem] # 形近词 Contains-LookAlikeWords
-    Inflections : List[WordItem] # 变形 Contains-Inflections
+    HAS_SYNONYMS : List[WordItem] # 同义词 Contains-Synonyms
+    HAS_LOOKALIKEWORDS : List[WordItem] # 形近词 Contains-LookAlikeWords
+    HAS_INFLECTIONS : List[WordItem] # 变形 Contains-Inflections
     rootWord : List[WordItem] # 根单词,词根 Contains-Root
     HAS_WORD : List[WordSource] # 来源 ComesFrom
+
+
+
+
 
 
 
