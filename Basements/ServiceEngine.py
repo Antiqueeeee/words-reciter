@@ -69,7 +69,7 @@ class ServiceEngine:
         results = [rel["r.Unit"] for rel in results]
         return results
     
-    def publisher_select_word(self, publisher : str, grade : str, edition : str, volume : str, unit : str) -> list:
+    def publisher_select_word(self, publisher: str, grade: str, edition: str, volume: str, unit: str = None) -> list:
         '''
         根据出版社相关信息和单元查找单词
         Args:
@@ -77,17 +77,28 @@ class ServiceEngine:
             grade: str
             edition: str
             volume: str
+            unit: str (optional)
         Returns:
             list: 前端可显示的单词查询结果
         '''
+        node_name = f"{publisher}-{edition}-{grade}-{volume}"
+        node_label = "WordSource"
+        
+        if unit:
+            rel_attributes = {"Unit": unit}
+        else:
+            rel_attributes = {}
+        
         results = self.neo4j_handler.findRelatedNode(
-            node_name = publisher + "-" + edition + "-" + grade + "-" + volume
-            , node_label = "WordSource"
-            , rel_type = "HAS_WORD"
-            , rel_attributes = {"Unit" : unit}
+            node_name=node_name,
+            node_label=node_label,
+            rel_type="HAS_WORD",
+            rel_attributes=rel_attributes
         )
+        
         results = [WordItem(**node["n"]).__dict__ for node in results]
         return results
+
 
     def stored_word_completion(self):
         to_be_generated_words = self.neo4j_handler.findNodeByType(
@@ -121,6 +132,10 @@ class ServiceEngine:
 
 
 if __name__ == "__main__":
+    # 页面上要显示学习进度
+    # 增加控制是否显示单词含义的开关
+    # 页面上显示单词相关的知识图谱
+
 
     # 测试按出版社信息导出单词
     manager = ServiceEngine()

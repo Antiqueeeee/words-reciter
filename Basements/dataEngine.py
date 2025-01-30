@@ -30,7 +30,7 @@ class DataManager:
             wordItem = WordItem(name=word, pronunciation = pronunce, meaning = meaning)
             self.neo4j_handler.create_word(wordItem = wordItem, wordSource = wordSource , relation_attributes = {"Unit" : unit})
 
-    def store_words_completion(self, publisher : str, grade : str, edition : str, volume : str, unit : str, searchFlag = -1):
+    def store_words_completion(self, publisher : str, grade : str, edition : str, volume : str, unit : str = None, searchFlag = -1):
         word_info_list = ["pronunciationRules", "exampleSentences"]
         node_info_list = ["Affix", "Synonyms", "LookAlikeWords", "Inflections"]
         results = self.service_engine.publisher_select_word(publisher, grade, edition, volume, unit)
@@ -111,10 +111,10 @@ class DataManager:
 
 
 if __name__ == "__main__":
-    # 测试上传单词功能
-    manager = DataManager()
-    xlsx_path = r'C:\FeynmindPython\words-reciter\Examples\Uploads\人民教育出版社-2014年3月第一版-九年级-全一册.xlsx'
-    manager.upload_words_from_xlsx(xlsx_path)
+    # # 测试上传单词功能
+    # manager = DataManager()
+    # xlsx_path = r'C:\FeynmindPython\words-reciter\Examples\Uploads\人民教育出版社-2014年3月第一版-九年级-全一册.xlsx'
+    # manager.upload_words_from_xlsx(xlsx_path)
 
 
     # 测试单词信息补全
@@ -124,7 +124,5 @@ if __name__ == "__main__":
         grade = "九年级",
         edition = "2014年3月第一版",
         volume = "全一册",
-        unit = "Unit 1",
-        searchFlag=-1
     )
 
