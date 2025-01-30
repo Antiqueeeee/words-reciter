@@ -8,11 +8,15 @@ sys.path.append(project_path)
 from Basements.neo4jEngine import Neo4jHandler
 from Basements.miscellany import Miscellany
 from Basements.ItemWord import WordItem
+from Basements.GPTEngine import GPTEngine
+import pandas as pd
 
+from config import WORD_COMPLETION_TEMPLATE
 class ServiceEngine:
     def __init__(self):
         self.neo4j_handler = Neo4jHandler()
         self.tools = Miscellany()
+        self.gpt = GPTEngine()
 
     def get_publisher(self) -> list:
         '''
@@ -85,16 +89,57 @@ class ServiceEngine:
         results = [WordItem(**node["n"]).__dict__ for node in results]
         return results
 
+    def stored_word_completion(self):
+        to_be_generated_words = self.neo4j_handler.findNodeByType(
+            label = "Word"
+            ,node_attributes = {"search_flag":-1}
+        )
+        to_be_generated_words = [node["n"] for node in to_be_generated_words]
+        return to_be_generated_words
+
+    def publisher_words_export(self, publisher : str, grade : str, edition : str, volume : str, unit : str, searchFlag = -1) -> str:
+        results = self.publisher_select_word(publisher, grade, edition, volume, unit)
+        words = list()
+        for word in results:
+            if word["searchFlag"] != searchFlag:
+                continue
+            for key, value in word.items():
+                if isinstance(value, list):
+                    word[key] = "\n".join(value)
+            words.append(word)
+        frame = pd.DataFrame(words)
+        
+        current = self.tools.time_now(format='%Y%m%d')
+        filename = current + "-" + publisher + "-" + edition + "-" + grade + "-" + volume + "-" + unit  + ".csv"
+        file_path = os.path.join(project_path, "Examples", "Exports", filename)
+        return frame.to_csv(file_path, index = False, encoding = "utf-8-sig")
+
+    def gpt_generate_wordinfo(self, word : str):
+        prompt = WORD_COMPLETION_TEMPLATE.format(word=word)
+        response = self.gpt.chat(prompt = prompt,left_tag="{", right_tag="}")
+        return response
+
 
 if __name__ == "__main__":
-    # 测试根据出版社信息查询有哪些单元
-    publisher = "人民教育出版社"
-    grade = "九年级"
-    edition = "2014年3月第一版"
-    volume = "全一册"
+
+    # 测试按出版社信息导出单词
     manager = ServiceEngine()
-    results = manager.get_unit(publisher, grade, volume, edition)
-    print(results)
+    results = manager.publisher_words_export(
+        publisher = "人民教育出版社"
+        , grade = "九年级"
+        , edition = "2014年3月第一版"
+        , volume = "全一册"
+        , unit = "Unit 1"
+    )
+
+    # # 测试根据出版社信息查询有哪些单元
+    # publisher = "人民教育出版社"
+    # grade = "九年级"
+    # edition = "2014年3月第一版"
+    # volume = "全一册"
+    # manager = ServiceEngine()
+    # results = manager.get_unit(publisher, grade, volume, edition)
+    # print(results)
 
     # # 测试根据出版是、年级、版本，查询册数
     # publisher = "人民教育出版社"

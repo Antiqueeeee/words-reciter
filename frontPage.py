@@ -90,19 +90,24 @@ if st.session_state.show_words:
     if filtered_words:
         word = filtered_words[st.session_state.word_index]
         for key,value in word.items():
-            if not value or pd.isnull(value):
-                word[key] = None
+            if value  and (isinstance(value, list) or isinstance(value, str) or isinstance(value, dict)):
+                if len(value) == 0:
+                    word[key] = None
+
+            # if not value or pd.isnull(value):
+            #     word[key] = None
 
         print(f"!!!!filtered_words!!!!!:{type(word)}\n{word}\n\n")
         st.subheader(word['name'])
+        st.write("发音: <br>", ", ".join(word['pronunciation']) if word['pronunciation'] else None)
+        st.write("发音方式: <br>", "<br>".join(word['pronunciationRules']))
         st.write("含义: ", ", ".join(word['meaning']))
         if word['pronunciationFilePath']:
             st.audio(word['pronunciationFilePath'])
         st.write("例句: ", " ".join(word['exampleSentences']) if word['exampleSentences'] else None)
         st.write("历史: ", word['history'])
-        st.write("背诵技巧: ", word['reciteTrick'])
         st.write("搭配用法: ", word['collocations'])
-        st.write("发音: ", ", ".join(word['pronunciation']) if word['pronunciation'] else None)
+        
 
         # 翻页按钮
         col1, col2 = st.columns(2)

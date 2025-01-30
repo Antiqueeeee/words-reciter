@@ -23,15 +23,18 @@ class Neo4jHandler:
         driver = GraphDatabase.driver(self.NEO4J_URI, auth=(self.NEO4J_USER, self.NEO4J_PASSWORD))
         return driver
 
-    def findNodeByName(self, name, Label, attributes = dict()):
+    def findNodeByName(self, name, label, node_attributes = dict()):
         driver = self.neo4j_connect()
+        node_attributes["name"] = name
         with driver.session() as session:
-            result = session.run(f"MATCH (n:{Label}) WHERE n.name = $name RETURN n", name=name)
+            query = f"MATCH (n:{label} {{name: $name}})"
+            if len(node_attributes) > 0:
+                query += " WHERE "
+                query += " AND ".join([f"n.{key} = ${key}" for key in node_attributes.keys()])
+            query += " RETURN n"
+            result = session.run(query, **node_attributes)
             res = result.data()
         self.close(driver)
-        if len(res) > 0 :
-            for i in res:
-                i["n"]["节点类型"] = Label
         return res
 
     def findNodeByType(self, label, node_attributes = dict()) -> list:
@@ -88,17 +91,17 @@ class Neo4jHandler:
         self.close(driver)
         return result
 
-    def createNode(self, name, Label, attributes=dict()):
+    def createNode(self, name, label, attributes=dict()):
         driver = self.neo4j_connect()
         with driver.session() as session:
             # Check if the node already exists
-            check_query = f"MATCH (n:{Label} {{name: $name}}) RETURN n"
+            check_query = f"MATCH (n:{label} {{name: $name}}) RETURN n"
             result = session.run(check_query, name=name)
             
             if not result.single():
                 # Node does not exist, create it
                 attributes['name'] = name  # Ensure 'name' is included in attributes
-                create_query = f"CREATE (n:{Label} {{"
+                create_query = f"CREATE (n:{label} {{"
                 create_query += ", ".join([f"{key}: ${key}" for key in attributes.keys()])
                 create_query += "})"
                 session.run(create_query, **attributes)
@@ -222,19 +225,29 @@ class Neo4jHandler:
         self.close(driver)
         return result
 
+    def update_node_attributes(self, label, node_name = str(), node_attributes=dict()):
+        driver = self.neo4j_connect()
+        with driver.session() as session:
+            query = f"MATCH (n:{label}"
+            if len(node_name) > 0:
+                query += f"{{name: $name}}"
+            query += ") SET "
+            query += ", ".join([f"n.{key} = ${key}" for key in node_attributes.keys()])
+            session.run(query, name=node_name, **node_attributes)
+        self.close(driver)
 
     # Service function
     def create_word(self, wordItem:WordItem, wordSource:WordSource, relation_attributes = dict()):
         # 单词不在，创建单词
-        result = self.findNodeByName(name = wordItem.name, Label = "Word", attributes = wordItem.__dict__)
+        result = self.findNodeByName(name = wordItem.name, label = "Word", node_attributes = wordItem.__dict__)
         if len(result) == 0:
             print(f"节点不存在：{wordItem.name}, Word")
-            self.createNode(name = wordItem.name, Label = "Word", attributes = wordItem.__dict__)
+            self.createNode(name = wordItem.name, label = "Word", attributes = wordItem.__dict__)
         # 单词出处不存在，创建该出处
-        result = self.findNodeByName(name = wordSource.name, Label = "WordSource", attributes = wordSource.__dict__)
+        result = self.findNodeByName(name = wordSource.name, label = "WordSource", node_attributes = wordSource.__dict__)
         if len(result) == 0:
             print(f"节点不存在：{wordSource.name}, WordSource")
-            self.createNode(name = wordSource.name, Label = "WordSource", attributes = wordSource.__dict__)
+            self.createNode(name = wordSource.name, label = "WordSource", attributes = wordSource.__dict__)
         
         # 建立单词和出版社之间的联系
         self.createRelationship(
@@ -252,15 +265,24 @@ class Neo4jHandler:
     
 if __name__ == '__main__':
 
-    # 测试根据头尾节点查询关系属性：
+    # 测试根据节点名称及属性找到节点
     neo4j_handler = Neo4jHandler()
-    head_label = "WordSource"
-    tail_label = "Word"
-    rel_type = "HAS_WORD"
-    target_rel_attributes = ["Unit"]
-    result = neo4j_handler.findRelationAttributes(head_label=head_label, tail_label=tail_label, rel_type=rel_type, target_rel_attributes=target_rel_attributes)
-    print("***")
-    print(result)
+    name = "textbook"
+    label = "Word"
+    res = neo4j_handler.findNodeByName(name, label)
+    word = WordItem(**res[0]["n"])
+    print(type(word.pronunciation))
+    print(res)
+
+    # # 测试根据头尾节点查询关系属性：
+    # neo4j_handler = Neo4jHandler()
+    # head_label = "WordSource"
+    # tail_label = "Word"
+    # rel_type = "HAS_WORD"
+    # target_rel_attributes = ["Unit"]
+    # result = neo4j_handler.findRelationAttributes(head_label=head_label, tail_label=tail_label, rel_type=rel_type, target_rel_attributes=target_rel_attributes)
+    # print("***")
+    # print(result)
 
     # # 测试创建节点
     # neo4j_handler = Neo4jHandler()

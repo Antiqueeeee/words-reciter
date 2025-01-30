@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-
+# 图谱中的实体类型
 @dataclass
 class Wordaffix:
     name : str # 词缀
@@ -11,12 +11,13 @@ class Wordaffix:
 class WordItem:
     name: str  # 单词
     meaning: List[str]  # 单词含义, 用WordMeaning主要限制存储的内容，本质上就是str
-    pronunciationFilePath: Optional[str] = None  # 发音文件路径
+    searchFlag : int = -1 # 搜索标记
+    pronunciationFilePath: Optional[str] = str()  # 发音文件路径
     exampleSentences: Optional[List[str]] = field(default_factory=list)  # 例句
-    history: Optional[str] = None  # 发展历史和文化背景
-    reciteTrick: Optional[str] = None  # 背诵技巧
-    collocations: Optional[str] = None  # 搭配用法
+    history: Optional[str] = str()  # 发展历史和文化背景
+    collocations: Optional[str] = str()  # 搭配用法
     pronunciation: Optional[List[str]] = field(default_factory=list)  # 发音
+    pronunciationRules: Optional[List[str]] = field(default_factory=list)  # 发音规则
 
 @dataclass
 class WordSource:
@@ -25,18 +26,19 @@ class WordSource:
     # 如果是考试，那就有考试类型就行 
     # 如果是CET4、GRE之类的
     name: str  # 节点名称
-    publisher: Optional[str] = None  # 出版社
-    grade: Optional[str] = None  # 年级
-    examType: Optional[str] = None  # 考试类型
-    edition: Optional[str] = None  # 版次
-    volume: Optional[str] = None  # 上下册
+    publisher: Optional[str] = str()  # 出版社
+    grade: Optional[str] = str()  # 年级
+    examType: Optional[str] = str()  # 考试类型
+    edition: Optional[str] = str()  # 版次
+    volume: Optional[str] = str()  # 上下册
 
 
 @dataclass
 class WordPartOfSpeech: # 只有固定的几个，V、ADV、ADJ等等
     name : str # 词性
     
-    
+
+# 图谱中与Word类有关联的节点类型
 @dataclass
 class WordHasRelationship:
     affix : List[Wordaffix] # 词缀 Contains-Affix
@@ -46,6 +48,7 @@ class WordHasRelationship:
     Inflections : List[WordItem] # 变形 Contains-Inflections
     rootWord : List[WordItem] # 根单词,词根 Contains-Root
     HAS_WORD : List[WordSource] # 来源 ComesFrom
+
 
 
 

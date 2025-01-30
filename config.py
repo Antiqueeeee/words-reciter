@@ -50,25 +50,25 @@ WORD_COMPLETION_TEMPLATE = '''
      {{"example":"The community center received a grant to start a new project aimed at helping local youth.","translate":"社区中心获得了一笔拨款，用于启动一个帮助当地青少年的新项目。"}}
    ]
 
-3. 词缀（affix）：当前这个单词包含哪些词缀，这个词缀的含义是什么。以List[dict]的格式返回，dict中包含affix和meaning两个字段。例如讲解单词project时，返回的形式类似于：
+3. 词缀（Affix）：当前这个单词包含哪些词缀，这个词缀的含义是什么。以List[dict]的格式返回，dict中包含affix和meaning两个字段。例如讲解单词project时，返回的形式类似于：
    [
      {{"affix":"pro-","meaning":"向前，在前面"}},
-     {{"affix":"-ject","meaning":""扔"或"投掷""}}
+     {{"affix":"-ject","meaning":"'扔'或'投掷'"}}
    ]
 
-4. 同义词（synonyms）：与当前词含义接近的词。以List[dict]的格式返回，dict中包含word和meaning两个字段。如果单词具备多种词性，不同词性之间用\\n进行分隔。例如讲解单词project时，返回的形式类似于：
+4. 同义词（Synonyms）：与当前词含义接近的词。以List[dict]的格式返回，dict中包含word和meaning两个字段。如果单词具备多种词性，不同词性之间用\\n进行分隔。例如讲解单词project时，返回的形式类似于：
    [
      {{"word":"scheme","meaning":"n.项目\\nv.密谋；策划"}},
      {{"word":"plan","meaning":"n.计划\\nv.计划"}}
    ]
 
-5. 形近词（lookAlikeWords）：与当前词拼写接近的词。以List[dict]的格式返回，dict中包含word和meaning两个字段。如果单词具备多种词性，不同词性之间用\\n进行分隔。例如讲解单词project时，返回的形式类似于：
+5. 形近词（LookAlikeWords）：与当前词拼写接近的词。以List[dict]的格式返回，dict中包含word和meaning两个字段。如果单词具备多种词性，不同词性之间用\\n进行分隔。例如讲解单词project时，返回的形式类似于：
    [
      {{"word":"protest","meaning":"n.抗议；反对\\nv.抗议；反对"}},
      {{"word":"protect","meaning":"v.保护"}}
    ]
 
-6. 变形（inflections）：罗列当前单词的原型、第三人称单数形式、过去式、过去分词。以List[dict]的形式按顺序存入。例如讲解单词eat时，返回的形式类似于：
+6. 变形（Inflections）：罗列当前单词的原型、第三人称单数形式、过去式、过去分词。以List[dict]的形式按顺序存入。例如讲解单词eat时，返回的形式类似于：
    [
      {{"word":"eat","meaning":"v.吃"}},
      {{"word":"eats","meaning":"v.吃（第三人称单数）"}},
@@ -81,10 +81,10 @@ WORD_COMPLETION_TEMPLATE = '''
 {{
     "pronunciationRules": [...],
     "exampleSentences": [...],
-    "affix": [...],
-    "synonyms": [...],
-    "lookAlikeWords": [...],
-    "inflections": [...]
+    "Affix": [...],
+    "Synonyms": [...],
+    "LookAlikeWords": [...],
+    "Inflections": [...]
 }}
 注意不要返回任何多余内容，我会通过“{{”和“}}”两个符号对JSON进行解析
 '''
