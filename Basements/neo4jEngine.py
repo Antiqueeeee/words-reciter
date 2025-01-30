@@ -32,6 +32,7 @@ class Neo4jHandler:
                 query += " WHERE "
                 query += " AND ".join([f"n.{key} = ${key}" for key in node_attributes.keys()])
             query += " RETURN n"
+            print(query)
             result = session.run(query, **node_attributes)
             res = result.data()
         self.close(driver)
@@ -239,7 +240,7 @@ class Neo4jHandler:
     # Service function
     def create_word(self, wordItem:WordItem, wordSource:WordSource, relation_attributes = dict()):
         # 单词不在，创建单词
-        result = self.findNodeByName(name = wordItem.name, label = "Word", node_attributes = wordItem.__dict__)
+        result = self.findNodeByName(name = wordItem.name, label = "Word")
         if len(result) == 0:
             print(f"节点不存在：{wordItem.name}, Word")
             self.createNode(name = wordItem.name, label = "Word", attributes = wordItem.__dict__)

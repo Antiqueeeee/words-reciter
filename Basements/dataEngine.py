@@ -7,14 +7,17 @@ from Basements.neo4jEngine import Neo4jHandler
 from Basements.miscellany import Miscellany
 from Basements.ItemWord import WordItem
 from Basements.ServiceEngine import ServiceEngine
+from Basements.TTSEngine import EdgeTTS
 import pandas as pd
 from tqdm import tqdm
+from config import TTS_DEFAULT_PARMS
 
 class DataManager:
     def __init__(self):
         self.neo4j_handler = Neo4jHandler()
         self.tools = Miscellany()
         self.service_engine = ServiceEngine()
+        self.tts_engine = EdgeTTS()
 
     def upload_words_from_xlsx(self, xlsx_path):
         df = pd.read_excel(xlsx_path)
@@ -36,7 +39,6 @@ class DataManager:
             _relatione_nodes, relatione_nodes = list(), list()
             update_attributes = dict()
             response = self.service_engine.gpt_generate_wordinfo(result["name"])
-            # response = {'pronunciationRules': [], 'exampleSentences': [{'example': 'Alexander Graham Bell is best known for inventing the telephone.', 'translate': '亚历山大·格拉汉姆·贝尔以发明电话而闻名。'}, {'example': 'In 1876, Bell was awarded the first US patent for the invention of the telephone.', 'translate': '1876年，贝尔因电话的发明而获得了美国第一项专利。'}, {'example': 'Bell also worked on various other scientific projects, including advancements in aerodynamics.', 'translate': '贝尔还参与了包括空气动力学进步在内的其他科学项目。'}], 'Affix': [{"affix":"pro-","meaning":"向前，在前面"},{"affix":"-ject","meaning":"扔或投掷"}], 'synonyms': [], 'lookAlikeWords': [], 'inflections': []}
             # 收集需要更新的属性和建立联系的节点
             for key, value in response.items():
                 if key in word_info_list:
@@ -47,9 +49,15 @@ class DataManager:
                     if len(value) > 0:
                         _relatione_nodes.extend(value)
             
-            # 将数据转换成图谱可用的数据
-            # 是不是应该以类型为单位去更新数据，而不是面向具体节点去更新数据？要更新节点把所有节点先封装成Word类型，然后实现一个更新属性的方法接入word类型数据，然后再修改数据
+            # # 将数据转换成图谱可用的数据
+            # # 是不是应该以类型为单位去更新数据，而不是面向具体节点去更新数据？要更新节点把所有节点先封装成Word类型，然后实现一个更新属性的方法接入word类型数据，然后再修改数据
             update_attributes["exampleSentences"] = [sentence["example"] + "\n" + sentence["translate"] for sentence in update_attributes["exampleSentences"]]
+            read_wav_save_path = os.path.join(project_path, "Examples", "word_pronuciation", result["name"] + ".wav")
+            read_sub_save_path = os.path.join(project_path, "Examples", "word_pronuciation", result["name"] + ".vtt")
+            wav_path, sub_path = self.tts_engine.predict(
+            TEXT = result["name"], OUTPUT_FILE=read_wav_save_path, OUTPUT_SUBS=read_sub_save_path,  **TTS_DEFAULT_PARMS
+            )
+            update_attributes["pronunciationFilePath"] = wav_path
             for i in _relatione_nodes:
                 if i["label"] == "Inflections" :
                     if i["word"] != result["name"]:
@@ -91,7 +99,9 @@ class DataManager:
                     head_attributes=dict(),
                     tail_attributes=dict(),
                 )
-            # 处理完成后，将节点更新为不需要再补全的状态（0），审核后变为（1）
+            
+
+            # 处理完成后，将节点更新为不需要再补全的状态（0)),审核后变为（1）
             self.neo4j_handler.update_node_attributes(label = "Word", node_name = result["name"], node_attributes = {"searchFlag": 0})
 
 
@@ -115,5 +125,6 @@ if __name__ == "__main__":
         edition = "2014年3月第一版",
         volume = "全一册",
         unit = "Unit 1",
+        searchFlag=-1
     )
 
