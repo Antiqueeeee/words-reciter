@@ -2,7 +2,6 @@ import streamlit as st
 import requests
 from config import *
 import json
-import pandas as pd
 
 # 初始化session_state
 if 'publisher' not in st.session_state:
@@ -67,17 +66,55 @@ else:
     exam_type = st.sidebar.selectbox("Exam Type", ["Exam1", "Exam2"])
     unit = st.sidebar.selectbox("Unit", ["Unit1", "Unit2"])
 
-# 显示选择的筛选条件
-st.write("当前选择:")
-st.write(f"出版社: {st.session_state.publisher}")
-st.write(f"年级: {st.session_state.grade}")
-st.write(f"卷: {st.session_state.volume}")
-st.write(f"教材版本号: {st.session_state.edition}")
-st.write(f"单元: {st.session_state.unit}")
+# 新增转义函数
+def escape_markdown(text):
+    """转义Markdown特殊字符"""
+    if isinstance(text, list):
+        return [escape_markdown(str(item)) for item in text]
+    text = str(text)
+    # 转义Markdown特殊字符
+    replacements = {
+        '*': '\\*',
+        # '_': '\\_',
+        '`': '\\`',
+        '#': '\\#',
+        '~': '\\~',
+        '>': '\\>',
+        '<': '\\<'
+    }
+    for char, replacement in replacements.items():
+        text = text.replace(char, replacement)
+    return text
 
-# 显示单词信息
-if st.session_state.show_words:
-    # 这里需要根据选择的条件获取实际的单词列表
+
+
+# 使用帮助内容
+help_content = """
+## 使用指南
+
+欢迎使用英语单词背诵助手！请按照以下步骤操作：
+
+1. 在左侧边栏选择筛选条件
+2. 逐级选择出版社、年级、卷次、版本和单元
+3. 点击"显示单词"按钮开始学习
+4. 使用"上一个"/"下一个"按钮切换单词
+
+功能说明：
+- 点击喇叭图标可播放发音
+- 单词信息包含：发音规则、例句、历史演变等
+- 支持中英文对照学习
+
+Tips：
+- 可以点击侧边栏顶部的">"按钮收起侧边栏
+- 按F11进入全屏模式更专注学习
+"""
+
+# 根据状态显示内容
+if not st.session_state.show_words:
+    # 显示使用帮助
+    st.markdown(help_content)
+else:
+    # 显示单词内容
     filtered_words = requests.post(INTERFACE_PUBLISHER_SELECT_WORD, json={
         "publisher": st.session_state.publisher,
         "grade": st.session_state.grade,
@@ -89,33 +126,65 @@ if st.session_state.show_words:
 
     if filtered_words:
         word = filtered_words[st.session_state.word_index]
-        for key,value in word.items():
-            if value  and (isinstance(value, list) or isinstance(value, str) or isinstance(value, dict)):
-                if len(value) == 0:
-                    word[key] = None
+        # 在显示前处理数据
+        word = {
+            key: escape_markdown(value) 
+            for key, value in word.items()
+        }
+        # 清理空数据
+        for key, value in word.items():
+            if value and (isinstance(value, (list, str, dict))) and len(value) == 0:
+                word[key] = None
 
-            # if not value or pd.isnull(value):
-            #     word[key] = None
-
-        print(f"!!!!filtered_words!!!!!:{type(word)}\n{word}\n\n")
-        st.subheader(word['name'])
-        st.write("发音: <br>", ", ".join(word['pronunciation']) if word['pronunciation'] else None)
-        st.write("发音方式: <br>", "<br>".join(word['pronunciationRules']))
-        st.write("含义: ", ", ".join(word['meaning']))
-        if word['pronunciationFilePath']:
-            st.audio(word['pronunciationFilePath'])
-        st.write("例句: ", " ".join(word['exampleSentences']) if word['exampleSentences'] else None)
-        st.write("历史: ", word['history'])
-        st.write("搭配用法: ", word['collocations'])
-        
-
-        # 翻页按钮
-        col1, col2 = st.columns(2)
+        # 显示单词信息
+        col1, col2 = st.columns([3, 1])
         with col1:
-            if st.button("上一个单词", disabled=st.session_state.word_index == 0):
-                st.session_state.word_index -= 1
+            st.subheader(f"单词: {word['name']}")
         with col2:
-            if st.button("下一个单词", disabled=st.session_state.word_index == len(filtered_words) - 1):
+            if word.get('pronunciationFilePath'):
+                st.audio(word['pronunciationFilePath'])
+
+        with st.expander("发音信息", expanded=True):
+            rules = '\n  '.join([f'• {rule}' for rule in word.get('pronunciationRules', [])]) or '暂无'
+            st.markdown(f"""
+            - 音标: {', '.join(word['pronunciation']) if word.get('pronunciation') else '暂无'}
+            - 发音规则:  
+            {rules}
+            """)
+
+        with st.expander("详细释义", expanded=True):
+            content = (
+                "**核心含义**  \n" +
+                ', '.join(word.get('meaning', ['暂无'])).replace('*', '\\*') + "\n\n" +
+                "**典型例句**  \n" +
+                ''.join([f'- {sentence}\n' for sentence in word.get('exampleSentences', [])]) + "\n\n" +
+                "**搭配用法**  \n" +
+                word.get('collocations', '暂无').replace('*', '\\*')
+            )
+            st.markdown(content)
+
+        # 翻页控制
+        col_prev, _, col_next = st.columns([2, 6, 2])
+        with col_prev:
+            if st.button("⏮ 上一个", disabled=st.session_state.word_index == 0):
+                st.session_state.word_index -= 1
+                st.rerun()
+        with col_next:
+            if st.button("⏭ 下一个", disabled=st.session_state.word_index == len(filtered_words)-1):
                 st.session_state.word_index += 1
+                st.rerun()
+
+        # 显示进度
+        st.caption(f"进度: {st.session_state.word_index + 1}/{len(filtered_words)}")
+        
+        # 添加返回按钮
+        if st.button("返回选择界面"):
+            st.session_state.show_words = False
+            st.session_state.word_index = 0
+            st.rerun()
     else:
-        st.write("没有找到符合条件的单词。")
+        st.warning("未找到匹配的单词")
+        if st.button("重新选择"):
+            st.session_state.show_words = False
+            st.session_state.word_index = 0
+            st.rerun()
