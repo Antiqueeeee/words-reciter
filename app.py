@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi import Response
+from fastapi.responses import FileResponse
 from Basements.InterfaceParams import *
 from Basements.dataEngine import DataManager
 from Basements.ServiceEngine import ServiceEngine
@@ -19,6 +21,7 @@ class Server(FastAPI):
         self.post("/get_volumes")(self.get_volumes)
         self.post("/get_editions")(self.get_editions)
         self.post("/get_units")(self.get_units)
+        self.post("/get_word_audio")(self.get_word_audio)
 
     def publisher_select_word(self, params:params_publisher_select_word):
         publisher, grade, edition, volume, unit = params.publisher, params.grade, params.edition, params.volume, params.unit
@@ -51,7 +54,11 @@ class Server(FastAPI):
         publisher, grade, volume, edition = params.publisher, params.grade, params.volume, params.edition
         return self.service_engine.get_unit(publisher, grade, volume, edition)
 
-
+    def get_word_audio(self, params:params_get_word_audio):
+        filename = params.filename
+        if os.path.exists(filename):
+            return FileResponse(filename, media_type="audio/wav")
+        return Response(status_code=404, content="File not found.")
 
 if __name__ == "__main__":
     server = Server()

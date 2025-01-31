@@ -1,6 +1,5 @@
 import os, sys
 
-from requests import head
 current_path = os.path.abspath(os.path.join(__file__, os.pardir))
 project_path = os.path.abspath(os.path.join(current_path, os.pardir))
 sys.path.append(project_path)
@@ -132,10 +131,13 @@ class ServiceEngine:
 
 
 if __name__ == "__main__":
-    # 页面上要显示学习进度
+    # 页面上要显示学习进度，页面上有，但不明显
     # 增加控制是否显示单词含义的开关
     # 页面上显示单词相关的知识图谱
-
+    # 播放按钮不太好用
+    # 单元列表不是按顺序排列的
+    # 点击显示单词切换单元后，进度没有重置
+    # 单词顺序和书上不一致
 
     # 测试按出版社信息导出单词
     manager = ServiceEngine()

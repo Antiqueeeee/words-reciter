@@ -29,6 +29,7 @@ INTERFACE_GET_GRADES = f"http://127.0.0.1:{SERVER_PORT}/get_grades"
 INTERFACE_GET_VOLUMES = f"http://127.0.0.1:{SERVER_PORT}/get_volumes"
 INTERFACE_GET_EDITIONS = f"http://127.0.0.1:{SERVER_PORT}/get_editions"
 INTERFACE_GET_UNITS = f"http://127.0.0.1:{SERVER_PORT}/get_units"
+INTERFACE_GET_WORD_AUDIO = f"http://127.0.0.1:{SERVER_PORT}/get_word_audio"
 
 
 # Prompt

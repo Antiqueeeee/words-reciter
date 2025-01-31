@@ -25,3 +25,6 @@ class params_get_units(BaseModel):
     grade: str
     volume: str
     edition: str
+
+class params_get_word_audio(BaseModel):
+    filename: str

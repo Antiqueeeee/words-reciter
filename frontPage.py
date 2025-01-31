@@ -18,13 +18,20 @@ if 'show_words' not in st.session_state:
     st.session_state.show_words = False
 if 'word_index' not in st.session_state:
     st.session_state.word_index = 0
+if 'auto_expand' not in st.session_state:
+    st.session_state.auto_expand = True
 
-# Streamlit 应用
-st.title("英语单词背诵助手")
+# # Streamlit 应用
+# st.title("英语单词背诵助手")
 
 # 筛选条件
 st.sidebar.header("筛选条件")
 filter_type = st.sidebar.radio("选择筛选方式", ("Publisher/Edition/Grade/Volume/Unit", "ExamType/Unit"))
+
+# 添加折叠开关
+st.sidebar.markdown("---")
+st.session_state.auto_expand = st.sidebar.checkbox("自动展开释义", value=True, 
+                                                 help="开启时自动展开释义内容，关闭时需要手动点击展开")
 
 if filter_type == "Publisher/Edition/Grade/Volume/Unit":
     # Publisher 选择
@@ -66,16 +73,14 @@ else:
     exam_type = st.sidebar.selectbox("Exam Type", ["Exam1", "Exam2"])
     unit = st.sidebar.selectbox("Unit", ["Unit1", "Unit2"])
 
-# 新增转义函数
+# 转义函数
 def escape_markdown(text):
     """转义Markdown特殊字符"""
     if isinstance(text, list):
         return [escape_markdown(str(item)) for item in text]
     text = str(text)
-    # 转义Markdown特殊字符
     replacements = {
         '*': '\\*',
-        # '_': '\\_',
         '`': '\\`',
         '#': '\\#',
         '~': '\\~',
@@ -86,10 +91,10 @@ def escape_markdown(text):
         text = text.replace(char, replacement)
     return text
 
-
-
 # 使用帮助内容
 help_content = """
+# 英语单词背诵助手
+
 ## 使用指南
 
 欢迎使用英语单词背诵助手！请按照以下步骤操作：
@@ -126,24 +131,28 @@ else:
 
     if filtered_words:
         word = filtered_words[st.session_state.word_index]
-        # 在显示前处理数据
-        word = {
-            key: escape_markdown(value) 
-            for key, value in word.items()
-        }
-        # 清理空数据
+        # 处理数据
+        word = {key: escape_markdown(value) for key, value in word.items()}
         for key, value in word.items():
             if value and (isinstance(value, (list, str, dict))) and len(value) == 0:
                 word[key] = None
 
-        # 显示单词信息
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.subheader(f"单词: {word['name']}")
-        with col2:
-            if word.get('pronunciationFilePath'):
-                st.audio(word['pronunciationFilePath'])
+        # 布局：单词名称 + 进度显示
+        col_top1, col_top2, col_top3 = st.columns([6, 1, 2])
+        with col_top1:
+            st.subheader(f"{word['name']}")
+        with col_top3:
+            st.markdown(
+                f"<p style='color:#FF4B4B; font-weight:bold; font-size:1.2rem;'>"
+                f"进度: {st.session_state.word_index + 1}/{len(filtered_words)}</p>",
+                unsafe_allow_html=True
+            )
 
+        # 音频播放控件
+        if word.get('pronunciationFilePath'):
+            st.audio(word['pronunciationFilePath'], format="audio/wav")
+            
+        # 发音信息
         with st.expander("发音信息", expanded=True):
             rules = '\n  '.join([f'• {rule}' for rule in word.get('pronunciationRules', [])]) or '暂无'
             st.markdown(f"""
@@ -151,8 +160,8 @@ else:
             - 发音规则:  
             {rules}
             """)
-
-        with st.expander("详细释义", expanded=True):
+        # 详细释义
+        with st.expander("详细释义", expanded=st.session_state.auto_expand):
             content = (
                 "**核心含义**  \n" +
                 ', '.join(word.get('meaning', ['暂无'])).replace('*', '\\*') + "\n\n" +
@@ -174,10 +183,7 @@ else:
                 st.session_state.word_index += 1
                 st.rerun()
 
-        # 显示进度
-        st.caption(f"进度: {st.session_state.word_index + 1}/{len(filtered_words)}")
-        
-        # 添加返回按钮
+        # 返回按钮
         if st.button("返回选择界面"):
             st.session_state.show_words = False
             st.session_state.word_index = 0
