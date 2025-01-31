@@ -261,19 +261,57 @@ class Neo4jHandler:
         # for mean in wordItem.meaning:
         #     if "." in 
 
+    def findRelationshipsExcludingType(self, node_name, node_label, exclude_label):
+        """
+        Find all relationships and connected nodes for a given node, excluding certain types.
+
+        Args:
+            node_name: The name of the node to start from.
+            node_label: The label of the node to start from.
+            exclude_label: The label of nodes to exclude from the results.
+
+        Returns:
+            list: A list of relationships and connected nodes.
+        """
+        driver = self.neo4j_connect()
+        result = []
+        with driver.session() as session:
+            # Construct the Cypher query
+            query = (
+                f"MATCH (m:{node_label} {{name: $node_name}})-[r]-(n) "
+                f"WHERE NOT n:{exclude_label} "
+                f"RETURN n, labels(n) AS node_label, type(r) AS relationship"
+            )
+            
+            # Execute the query
+            res = session.run(query, node_name=node_name)
+            result = res.data()
+        
+        self.close(driver)
+        return result
 
 
     
 if __name__ == '__main__':
 
-    # 测试根据节点名称及属性找到节点
+    # 测试根据节点名称找到相关的节点及关系名
     neo4j_handler = Neo4jHandler()
-    name = "textbook"
+    name = "attention"
     label = "Word"
-    res = neo4j_handler.findNodeByName(name, label)
-    word = WordItem(**res[0]["n"])
-    print(type(word.pronunciation))
-    print(res)
+    exclude_label = "WordSource"
+    res = neo4j_handler.findRelationshipsExcludingType(name, label, exclude_label)
+    for r in res:
+        print("***")
+        print(r)
+
+    # # 测试根据节点名称及属性找到节点
+    # neo4j_handler = Neo4jHandler()
+    # name = "textbook"
+    # label = "Word"
+    # res = neo4j_handler.findNodeByName(name, label)
+    # word = WordItem(**res[0]["n"])
+    # print(type(word.pronunciation))
+    # print(res)
 
     # # 测试根据头尾节点查询关系属性：
     # neo4j_handler = Neo4jHandler()

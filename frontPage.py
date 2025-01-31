@@ -2,7 +2,9 @@ import streamlit as st
 import requests
 from config import *
 import json
-
+from pyecharts import options as opts
+from pyecharts.charts import Graph
+from streamlit_echarts import st_pyecharts
 # 初始化session_state
 if 'publisher' not in st.session_state:
     st.session_state.publisher = None
@@ -91,6 +93,32 @@ def escape_markdown(text):
         text = text.replace(char, replacement)
     return text
 
+def create_knowledge_graph(word):
+    reponses = requests.post(INTERFACE_CREATED_WORD_RELATED_GRAPH, json={"word": word['name']}).json()
+    nodes, links = reponses["nodes"], reponses["links"]
+    for node in nodes :
+        print(node)
+    for link in links :
+        print(link)
+    graph = (
+        Graph()
+        .add(
+            "",
+            nodes,
+            links,
+            repulsion=4000,
+            edge_label=opts.LabelOpts(is_show=True),
+            layout="force"
+        )
+        .set_global_opts(
+            title_opts=opts.TitleOpts(title = word['name'] + "相关"),
+            tooltip_opts=opts.TooltipOpts(
+                formatter="{b}<br/>{c}"
+            )
+        )
+    )
+    return graph
+
 # 使用帮助内容
 help_content = """
 # 英语单词背诵助手
@@ -151,7 +179,10 @@ else:
         # 音频播放控件
         if word.get('pronunciationFilePath'):
             st.audio(word['pronunciationFilePath'], format="audio/wav")
-            
+        # Display the knowledge graph
+        with st.expander("单词一图流", expanded=True):
+            graph = create_knowledge_graph(word)
+            st_pyecharts(graph)
         # 发音信息
         with st.expander("发音信息", expanded=True):
             rules = '\n  '.join([f'• {rule}' for rule in word.get('pronunciationRules', [])]) or '暂无'

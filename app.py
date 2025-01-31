@@ -22,6 +22,7 @@ class Server(FastAPI):
         self.post("/get_editions")(self.get_editions)
         self.post("/get_units")(self.get_units)
         self.post("/get_word_audio")(self.get_word_audio)
+        self.post("/created_word_related_graph")(self.created_word_related_graph)
 
     def publisher_select_word(self, params:params_publisher_select_word):
         publisher, grade, edition, volume, unit = params.publisher, params.grade, params.edition, params.volume, params.unit
@@ -59,6 +60,11 @@ class Server(FastAPI):
         if os.path.exists(filename):
             return FileResponse(filename, media_type="audio/wav")
         return Response(status_code=404, content="File not found.")
+
+    def created_word_related_graph(self, params:params_obtain_word_related):
+        word = params.word
+        nodes, links = self.service_engine.word_related_graph(word)
+        return {"nodes": nodes, "links": links}
 
 if __name__ == "__main__":
     server = Server()

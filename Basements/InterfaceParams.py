@@ -28,3 +28,6 @@ class params_get_units(BaseModel):
 
 class params_get_word_audio(BaseModel):
     filename: str
+
+class params_obtain_word_related(BaseModel):
+    word : str

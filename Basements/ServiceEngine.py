@@ -10,7 +10,7 @@ from Basements.ItemWord import WordItem
 from Basements.GPTEngine import GPTEngine
 import pandas as pd
 
-from config import WORD_COMPLETION_TEMPLATE
+from config import WORD_COMPLETION_TEMPLATE, relation2chinese
 class ServiceEngine:
     def __init__(self):
         self.neo4j_handler = Neo4jHandler()
@@ -129,25 +129,46 @@ class ServiceEngine:
         response = self.gpt.chat(prompt = prompt,left_tag="{", right_tag="}")
         return response
 
+    def word_related_graph(self, word : str):
+        existed = [word]
+        nodes, links = [{"name":word, "symbolSize" : 30}],list()
+        related = self.neo4j_handler.findRelationshipsExcludingType(node_name=word, node_label="Word", exclude_label="WordSource")
+        for rel in related:
+            if rel["n"]["name"] in existed:
+                rel["n"]["name"] = rel["n"]["name"] + " "
+            _relations = relation2chinese[rel["relationship"]]
+            if isinstance(rel["n"]["meaning"], list):
+                nodes.append({"name" : rel["n"]["name"], "value" : "\n".join(rel["n"]["meaning"]), "symbolSize" : 30})
+            elif isinstance(rel["n"]["meaning"], str):
+                nodes.append({"name" : rel["n"]["name"], "value" : rel["n"]["meaning"], "symbolSize" : 30})    
+            links.append({"source" : word, "target" : rel["n"]["name"], "label": {"show": True, "formatter": _relations}})
+            existed.append(rel["n"]["name"])
+        return nodes, links
 
 if __name__ == "__main__":
-    # 页面上要显示学习进度，页面上有，但不明显
-    # 增加控制是否显示单词含义的开关
-    # 页面上显示单词相关的知识图谱
-    # 播放按钮不太好用
     # 单元列表不是按顺序排列的
-    # 点击显示单词切换单元后，进度没有重置
     # 单词顺序和书上不一致
+    
+    # 点击显示单词切换单元后，进度没有重置
+    
 
-    # 测试按出版社信息导出单词
+    # 测试构建某单词图谱
     manager = ServiceEngine()
-    results = manager.publisher_words_export(
-        publisher = "人民教育出版社"
-        , grade = "九年级"
-        , edition = "2014年3月第一版"
-        , volume = "全一册"
-        , unit = "Unit 1"
-    )
+    word = "trick"
+    nodes, links = manager.word_related_graph(word)
+    for link in links:
+        print(link)
+
+
+    # # 测试按出版社信息导出单词
+    # manager = ServiceEngine()
+    # results = manager.publisher_words_export(
+    #     publisher = "人民教育出版社"
+    #     , grade = "九年级"
+    #     , edition = "2014年3月第一版"
+    #     , volume = "全一册"
+    #     , unit = "Unit 1"
+    # )
 
     # # 测试根据出版社信息查询有哪些单元
     # publisher = "人民教育出版社"
