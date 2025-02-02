@@ -24,10 +24,10 @@ class DataManager:
         file_name, file_extension = os.path.splitext(os.path.basename(xlsx_path))
         wordSource = self.tools.filename_parsing(file_name)
         for index, row in tqdm(df.iterrows()):
-            word, pronunce, meaning, unit = row["单词"], row["音标"], row["含义"], row["单元"]
+            word, pronunce, meaning, unit, index = row["单词"], row["音标"], row["含义"], row["单元"], row["序号"]
             meaning = meaning.split("\n")
             pronunce = [pronunce] if not pd.isnull(pronunce) else list()
-            wordItem = WordItem(name=word, pronunciation = pronunce, meaning = meaning)
+            wordItem = WordItem(name=word, pronunciation = pronunce, meaning = meaning, index=index)
             self.neo4j_handler.create_word(wordItem = wordItem, wordSource = wordSource , relation_attributes = {"Unit" : unit})
 
     def store_words_completion(self, publisher : str, grade : str, edition : str, volume : str, unit : str = None, searchFlag = -1):
@@ -111,18 +111,18 @@ class DataManager:
 
 
 if __name__ == "__main__":
-    # # 测试上传单词功能
-    # manager = DataManager()
-    # xlsx_path = r'C:\FeynmindPython\words-reciter\Examples\Uploads\人民教育出版社-2014年3月第一版-九年级-全一册.xlsx'
-    # manager.upload_words_from_xlsx(xlsx_path)
-
-
-    # 测试单词信息补全
+    # 测试上传单词功能
     manager = DataManager()
-    manager.store_words_completion(
-        publisher = "人民教育出版社",
-        grade = "九年级",
-        edition = "2014年3月第一版",
-        volume = "全一册",
-    )
+    xlsx_path = r'C:\FeynmindPython\words-reciter\Examples\Uploads\人民教育出版社-2014年3月第一版-九年级-全一册.xlsx'
+    manager.upload_words_from_xlsx(xlsx_path)
+
+
+    # # 测试单词信息补全
+    # manager = DataManager()
+    # manager.store_words_completion(
+    #     publisher = "人民教育出版社",
+    #     grade = "九年级",
+    #     edition = "2014年3月第一版",
+    #     volume = "全一册",
+    # )
 

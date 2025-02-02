@@ -9,6 +9,7 @@ class Wordaffix:
 
 @dataclass
 class WordItem:
+    index: int # 单词在单词表中的序号
     name: str  # 单词
     meaning: List[str]  # 单词含义, 用WordMeaning主要限制存储的内容，本质上就是str
     searchFlag : int = -1 # 搜索标记
