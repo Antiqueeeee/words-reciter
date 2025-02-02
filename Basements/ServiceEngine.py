@@ -66,6 +66,8 @@ class ServiceEngine:
             ,target_rel_attributes = target_rel_attributes
         )
         results = [rel["r.Unit"] for rel in results]
+        # Sort the results by the numeric part of the 'Unit' strings
+        results = sorted(results, key=lambda x: int(x.split(" ")[1]))
         return results
     
     def publisher_select_word(self, publisher: str, grade: str, edition: str, volume: str, unit: str = None) -> list:
@@ -96,6 +98,7 @@ class ServiceEngine:
         )
         
         results = [WordItem(**node["n"]).__dict__ for node in results]
+        results = sorted(results, key=lambda x: x['index'])
         return results
 
 
