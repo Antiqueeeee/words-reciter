@@ -18,6 +18,10 @@ GPT_MODELS = {
     "gpt-4o" : {
         "base_url" : "https://api2.aigcbest.top/v1",
         "api_key" : "sk-32vbc0ESSkP2NdjpWVJDZRVDVjPKyX6RyHv8kbuRIOIvou13",
+    },
+    "deepseek-chat":{
+        "base_url" : "https://api2.aigcbest.top/v1",
+        "api_key" : "sk-32vbc0ESSkP2NdjpWVJDZRVDVjPKyX6RyHv8kbuRIOIvou13",
     }
 }
 

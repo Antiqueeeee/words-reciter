@@ -53,7 +53,7 @@ class GPTEngine:
             raise ValueError("Left or right tag not found in response:\n" + response)
 
 if __name__ == "__main__":
-    gpt = GPTEngine()
+    gpt = GPTEngine(model = "deepseek-chat")
     prompt = WORD_COMPLETION_TEMPLATE.format(word="project")
     response = gpt.chat(prompt = prompt,left_tag="{", right_tag="}")
     print(response)
